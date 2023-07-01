@@ -1,0 +1,32 @@
+import numpy as np
+import scipy.io.wavfile as wav
+
+def reconstruct_phone_number(audio_file):
+    # Define dial tone frequencies for each digit
+    digit_frequencies = {
+        '1': 697, '2': 770, '3': 852,
+        '4': 941, '5': 1209, '6': 1336,
+        '7': 1477, '8': 1633, '9': 1760,
+        '0': 941  # '0' has the same frequency as '4'
+    }
+
+    # Load the audio file
+    sample_rate, audio_data = wav.read(audio_file)
+
+    # Perform Fourier transform on audio data
+    frequencies = np.fft.fftfreq(len(audio_data), 1 / sample_rate)
+    fft = np.fft.fft(audio_data)
+
+    # Find the peak frequency in the dial tone range for each digit
+    reconstructed_number = ""
+    for digit, frequency in digit_frequencies.items():
+        # Find the index of the peak frequency in the FFT result
+        index = np.argmax(np.abs(fft[(frequencies >= frequency - 10) & (frequencies <= frequency + 10)]))
+        reconstructed_number += digit
+
+    return reconstructed_number
+
+if __name__ == "__main__":
+    audio_file = "dial_tone.wav"  # Replace with the actual audio file path
+    reconstructed_number = reconstruct_phone_number(audio_file)
+    print("Reconstructed Phone Number:", reconstructed_number)
